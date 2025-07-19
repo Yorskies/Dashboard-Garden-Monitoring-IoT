@@ -34,50 +34,54 @@ class LaporanPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Header(title: 'Laporan'),
-          const SizedBox(height: 24),
-
-          // Kop surat
-          Row(
+    return Scaffold(
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Image.asset(
-                'assets/images/logo.png',
-                width: 80,
-                height: 80,
+              const Header(title: 'Laporan'),
+
+              // Kop surat
+              Row(
+                children: [
+                  Image.asset(
+                    'assets/images/logo.png',
+                    width: 80,
+                    height: 80,
+                  ),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Text(
+                      'STMIK Pelita Nusantara\nJl. Pendidikan No. 3, Lubuk Pakam – Deli Serdang\nTelp: (061) 7952010',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Text(
-                  'UNIVERSITAS CONTOH\nJl. Pendidikan No. 1, Kota Edukasi\nTelp: (021) 12345678',
-                  style: TextStyle(fontSize: 16),
-                ),
+
+              const Divider(height: 32, thickness: 2),
+
+              const Text(
+                'Laporan Simulasi Penyiraman Fuzzy',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+
+              const SizedBox(height: 16),
+
+              _buildTable(),
+
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () => _cetakPDF(),
+                icon: const Icon(Icons.print),
+                label: const Text('Cetak PDF'),
               ),
             ],
           ),
-
-          const Divider(height: 32, thickness: 2),
-
-          const Text(
-            'Laporan Simulasi Penyiraman Fuzzy',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-
-          const SizedBox(height: 16),
-
-          _buildTable(),
-
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => _cetakPDF(),
-            icon: const Icon(Icons.print),
-            label: const Text('Cetak PDF'),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -149,7 +153,6 @@ class LaporanPage extends StatelessWidget {
   Future<void> _cetakPDF() async {
     final pdf = pw.Document();
 
-    // Load logo
     final ByteData bytes = await rootBundle.load('assets/images/logo.png');
     final Uint8List logoBytes = bytes.buffer.asUint8List();
 
@@ -168,10 +171,10 @@ class LaporanPage extends StatelessWidget {
               pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('UNIVERSITAS CONTOH',
+                  pw.Text('STMIK Pelita Nusantara',
                       style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
-                  pw.Text('Jl. Pendidikan No. 1, Kota Edukasi'),
-                  pw.Text('Telp: (021) 12345678'),
+                  pw.Text('Jl. Pendidikan No. 3, Lubuk Pakam – Deli Serdang'),
+                  pw.Text('Telp: (061) 7952010'),
                 ],
               ),
             ],

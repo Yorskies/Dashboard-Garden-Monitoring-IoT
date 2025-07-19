@@ -4,6 +4,7 @@ import 'pages/data_tanaman_page.dart';
 import 'pages/laporan_page.dart';
 import 'pages/simulasi_page.dart';
 import 'pages/logka_fuzzy_page.dart';
+import 'pages/testing_firebase.dart'; // ✅ Tambahkan ini
 import 'widgets/sidebar.dart';
 
 class BaseLayout extends StatefulWidget {
@@ -33,6 +34,9 @@ class _BaseLayoutState extends State<BaseLayout> {
       case 'Laporan':
         currentPage = const LaporanPage();
         break;
+      case 'Tes Firebase': // ✅ Tambahan
+        currentPage = const TestingFirebasePage();
+        break;
       default:
         currentPage = const DashboardPage();
     }
@@ -51,7 +55,8 @@ class _BaseLayoutState extends State<BaseLayout> {
           Expanded(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
-              transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
+              transitionBuilder: (child, animation) =>
+                  FadeTransition(opacity: animation, child: child),
               child: Container(
                 key: ValueKey<String>(selectedMenu),
                 padding: const EdgeInsets.all(24.0),

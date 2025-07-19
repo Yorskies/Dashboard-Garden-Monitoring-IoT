@@ -18,6 +18,7 @@ class Sidebar extends StatelessWidget {
       {'title': 'Simulasi', 'icon': Icons.animation},
       {'title': 'Logika Fuzzy', 'icon': Icons.bubble_chart},
       {'title': 'Laporan', 'icon': Icons.picture_as_pdf},
+      {'title': 'Tes Firebase', 'icon': Icons.cloud_upload}, // Tambahan
     ];
 
     return Container(
