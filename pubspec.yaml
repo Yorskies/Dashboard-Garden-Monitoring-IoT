@@ -40,6 +40,12 @@ dependencies:
   firebase_database: ^11.3.9
   firebase_auth: ^5.6.2
   provider: ^6.0.0
+  js: ^0.7.2
+  image_picker: ^1.0.4
+  path: ^1.9.0
+  path_provider: ^2.1.2
+  intl: ^0.18.1
+  fl_chart: ^0.64.0
 
 dev_dependencies:
   flutter_test:

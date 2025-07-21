@@ -1,23 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/tanaman_provider.dart';
 import '../widgets/header.dart';
 import '../widgets/form_tambah_tanaman.dart';
 import '../widgets/tanaman_detail_card.dart';
 
-class DataTanamanPage extends StatefulWidget {
+class DataTanamanPage extends StatelessWidget {
   const DataTanamanPage({Key? key}) : super(key: key);
 
-  @override
-  State<DataTanamanPage> createState() => _DataTanamanPageState();
-}
-
-class _DataTanamanPageState extends State<DataTanamanPage> {
-  final List<Map<String, String>> dataTanaman = [
-    {'tinggi': '15 cm', 'usia': '7 hari', 'warna': 'Hijau Cerah'},
-    {'tinggi': '23 cm', 'usia': '14 hari', 'warna': 'Hijau Tua'},
-    {'tinggi': '10 cm', 'usia': '5 hari', 'warna': 'Hijau Pucat'},
-  ];
-
-  void _tampilkanFormTambah({Map<String, String>? dataEdit, int? indexEdit}) {
+  void _tampilkanFormTambah(BuildContext context, {Map<String, String>? dataEdit, int? indexEdit}) {
     showDialog(
       context: context,
       builder: (_) {
@@ -27,24 +18,7 @@ class _DataTanamanPageState extends State<DataTanamanPage> {
             width: 400,
             child: FormTambahTanaman(
               initialData: dataEdit,
-              onSubmit: (dataBaru) {
-                setState(() {
-                  if (indexEdit != null) {
-                    dataTanaman[indexEdit] = {
-                      'tinggi': dataBaru['tinggi'] ?? '',
-                      'usia': dataBaru['usia'] ?? '',
-                      'warna': dataBaru['warna'] ?? '',
-                    };
-                  } else {
-                    dataTanaman.add({
-                      'tinggi': '${(10 + dataTanaman.length * 2)} cm',
-                      'usia': '${(dataTanaman.length * 3) + 5} hari',
-                      'warna': 'Hijau Random',
-                    });
-                  }
-                });
-                Navigator.of(context).pop();
-              },
+              indexEdit: indexEdit,
             ),
           ),
         );
@@ -52,7 +26,7 @@ class _DataTanamanPageState extends State<DataTanamanPage> {
     );
   }
 
-  void _tampilkanDetailTanaman(Map<String, String> tanaman) {
+  void _tampilkanDetailTanaman(BuildContext context, int index) {
     showDialog(
       context: context,
       builder: (_) {
@@ -61,7 +35,7 @@ class _DataTanamanPageState extends State<DataTanamanPage> {
           child: SizedBox(
             width: 400,
             child: TanamanDetailCard(
-              tanaman: tanaman,
+              indexTanaman: index,
               onClose: () => Navigator.of(context).pop(),
             ),
           ),
@@ -72,11 +46,14 @@ class _DataTanamanPageState extends State<DataTanamanPage> {
 
   @override
   Widget build(BuildContext context) {
+    final tanamanProvider = Provider.of<TanamanProvider>(context);
+    final dataTanaman = tanamanProvider.daftarTanaman;
+
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Header(title: 'Data Tanaman'), // tetap di atas
+          const Header(title: 'Data Tanaman'),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -92,7 +69,7 @@ class _DataTanamanPageState extends State<DataTanamanPage> {
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       ElevatedButton.icon(
-                        onPressed: () => _tampilkanFormTambah(),
+                        onPressed: () => _tampilkanFormTambah(context),
                         icon: const Icon(Icons.add),
                         label: const Text('Tambah Tanaman'),
                         style: ElevatedButton.styleFrom(
@@ -106,15 +83,20 @@ class _DataTanamanPageState extends State<DataTanamanPage> {
                   Table(
                     border: TableBorder.all(color: Colors.grey.shade400),
                     columnWidths: const {
-                      0: FlexColumnWidth(1.5),
+                      0: FlexColumnWidth(1.8),
                       1: FlexColumnWidth(1.5),
-                      2: FlexColumnWidth(2),
-                      3: FlexColumnWidth(2.5),
+                      2: FlexColumnWidth(1.5),
+                      3: FlexColumnWidth(2),
+                      4: FlexColumnWidth(2.5),
                     },
                     children: [
                       const TableRow(
                         decoration: BoxDecoration(color: Colors.greenAccent),
                         children: [
+                          Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Text('Nama', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
                           Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Text('Tinggi', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -142,15 +124,19 @@ class _DataTanamanPageState extends State<DataTanamanPage> {
                             children: [
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Text(tanaman['tinggi']!),
+                                child: Text(tanaman['nama'] ?? '-'),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Text(tanaman['usia']!),
+                                child: Text(tanaman['tinggi'] ?? '-'),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Text(tanaman['warna']!),
+                                child: Text(tanaman['usia'] ?? '-'),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(tanaman['warna'] ?? '-'),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(4.0),
@@ -158,7 +144,7 @@ class _DataTanamanPageState extends State<DataTanamanPage> {
                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: [
                                     ElevatedButton(
-                                      onPressed: () => _tampilkanDetailTanaman(tanaman),
+                                      onPressed: () => _tampilkanDetailTanaman(context, index),
                                       child: const Text('Detail'),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.blue,
@@ -167,12 +153,11 @@ class _DataTanamanPageState extends State<DataTanamanPage> {
                                       ),
                                     ),
                                     ElevatedButton(
-                                      onPressed: () {
-                                        _tampilkanFormTambah(
-                                          dataEdit: tanaman,
-                                          indexEdit: index,
-                                        );
-                                      },
+                                      onPressed: () => _tampilkanFormTambah(
+                                        context,
+                                        dataEdit: Map<String, String>.from(tanaman),
+                                        indexEdit: index,
+                                      ),
                                       child: const Text('Edit'),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.orange,
@@ -181,11 +166,7 @@ class _DataTanamanPageState extends State<DataTanamanPage> {
                                       ),
                                     ),
                                     ElevatedButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          dataTanaman.removeAt(index);
-                                        });
-                                      },
+                                      onPressed: () => tanamanProvider.deleteTanaman(index),
                                       child: const Text('Hapus'),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.red,

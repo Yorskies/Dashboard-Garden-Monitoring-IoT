@@ -100,7 +100,7 @@ class _LogikaFuzzyPageState extends State<LogikaFuzzyPage> {
                         borderRadius: BorderRadius.circular(10),
                         child: Image.asset(
                           'assets/fuzzy_membership_chart.png',
-                          height: 200,
+                          height: 400,
                           fit: BoxFit.contain,
                         ),
                       ),

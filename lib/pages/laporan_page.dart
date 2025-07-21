@@ -173,7 +173,7 @@ class LaporanPage extends StatelessWidget {
                 children: [
                   pw.Text('STMIK Pelita Nusantara',
                       style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
-                  pw.Text('Jl. Pendidikan No. 3, Lubuk Pakam – Deli Serdang'),
+                  pw.Text('Jl. Iskandar Muda No.1, Merdeka, Kec. Medan Baru, Kota Medan, Sumatera Utara 20222'),
                   pw.Text('Telp: (061) 7952010'),
                 ],
               ),

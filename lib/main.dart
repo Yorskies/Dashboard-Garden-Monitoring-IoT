@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Tambahkan
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
 import 'base_layout.dart';
 import 'providers/realtime_data_provider.dart';
 import 'providers/device_status_provider.dart';
+import 'providers/tanaman_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,7 @@ void main() async {
   // Login Anonymous ke Firebase Authentication
   await _signInAnonymously();
 
+  // Jalankan aplikasi
   runApp(const MyApp());
 }
 
@@ -40,6 +42,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => RealtimeDataProvider()),
         ChangeNotifierProvider(create: (_) => DeviceStatusProvider()),
+        ChangeNotifierProvider(create: (_) => TanamanProvider()), // <--- penting
       ],
       child: MaterialApp(
         title: 'Smart Irrigation Dashboard',

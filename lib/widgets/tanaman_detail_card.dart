@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/tanaman_provider.dart';
 
 class TanamanDetailCard extends StatelessWidget {
-  final Map<String, String> tanaman;
+  final int indexTanaman;
   final VoidCallback? onClose;
 
   const TanamanDetailCard({
     Key? key,
-    required this.tanaman,
+    required this.indexTanaman,
     this.onClose,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final tanamanProvider = Provider.of<TanamanProvider>(context);
+    final tanaman = tanamanProvider.daftarTanaman[indexTanaman];
+
     return Card(
       margin: const EdgeInsets.only(top: 16),
       elevation: 4,
@@ -21,6 +26,7 @@ class TanamanDetailCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -36,6 +42,9 @@ class TanamanDetailCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
+
+            // Detail Info
+            _buildDetailRow('Nama Tanaman:', tanaman['nama'] ?? ''),
             _buildDetailRow('Tinggi Tanaman:', tanaman['tinggi'] ?? ''),
             _buildDetailRow('Usia Tanaman:', tanaman['usia'] ?? ''),
             _buildDetailRow('Warna Daun:', tanaman['warna'] ?? ''),
@@ -49,8 +58,12 @@ class TanamanDetailCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('$label ', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            '$label ',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           Expanded(child: Text(value)),
         ],
       ),
