@@ -46,7 +46,7 @@ class DeviceStatusProvider extends ChangeNotifier {
             final last = DateTime(now.year, now.month, now.day, jam, menit);
 
             final selisih = now.difference(last);
-            if (selisih.inSeconds > 30) {
+            if (selisih.inSeconds > 60) {
               _status = "OFFLINE";
               notifyListeners();
             }

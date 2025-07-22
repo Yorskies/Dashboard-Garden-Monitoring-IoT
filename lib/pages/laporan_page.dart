@@ -3,37 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:provider/provider.dart';
+
 import '../widgets/header.dart';
+import '../models/sensor_data.dart';
+import '../providers/simulasi_provider.dart';
 
 class LaporanPage extends StatelessWidget {
   const LaporanPage({Key? key}) : super(key: key);
 
-  final List<Map<String, String>> dataSimulasi = const [
-    {
-      'waktu': '07:00',
-      'kelembaban': '35%',
-      'suhu': '30°C',
-      'hasil': '7.5',
-      'keterangan': 'Disiram 7.5 detik'
-    },
-    {
-      'waktu': '17:00',
-      'kelembaban': '60%',
-      'suhu': '26°C',
-      'hasil': '3.0',
-      'keterangan': 'Disiram 3.0 detik'
-    },
-    {
-      'waktu': '07:00',
-      'kelembaban': '85%',
-      'suhu': '20°C',
-      'hasil': '0.0',
-      'keterangan': 'Tidak disiram'
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final dataSimulasi = context.watch<SimulasiProvider>().data;
+
     return Scaffold(
       body: SafeArea(
         top: false,
@@ -43,8 +25,6 @@ class LaporanPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Header(title: 'Laporan'),
-
-              // Kop surat
               Row(
                 children: [
                   Image.asset(
@@ -55,27 +35,22 @@ class LaporanPage extends StatelessWidget {
                   const SizedBox(width: 16),
                   const Expanded(
                     child: Text(
-                      'STMIK Pelita Nusantara\nJl. Pendidikan No. 3, Lubuk Pakam – Deli Serdang\nTelp: (061) 7952010',
+                      'STMIK Pelita Nusantara\nJl. Iskandar Muda No.1, Merdeka, Kec. Medan Baru, Kota Medan, Sumatera Utara\nTelp: (061) 7952010',
                       style: TextStyle(fontSize: 16),
                     ),
                   ),
                 ],
               ),
-
               const Divider(height: 32, thickness: 2),
-
               const Text(
                 'Laporan Simulasi Penyiraman Fuzzy',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-
               const SizedBox(height: 16),
-
-              _buildTable(),
-
+              _buildTable(dataSimulasi),
               const SizedBox(height: 24),
               ElevatedButton.icon(
-                onPressed: () => _cetakPDF(),
+                onPressed: () => _cetakPDF(dataSimulasi),
                 icon: const Icon(Icons.print),
                 label: const Text('Cetak PDF'),
               ),
@@ -86,11 +61,15 @@ class LaporanPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTable() {
+  Widget _buildTable(List<SensorData> dataSimulasi) {
+    if (dataSimulasi.isEmpty) {
+      return const Text("Tidak ada data simulasi.");
+    }
+
     return Table(
       border: TableBorder.all(),
       columnWidths: const {
-        0: FlexColumnWidth(1.2),
+        0: FlexColumnWidth(1.5),
         1: FlexColumnWidth(1.2),
         2: FlexColumnWidth(1.2),
         3: FlexColumnWidth(1.2),
@@ -126,23 +105,23 @@ class LaporanPage extends StatelessWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(row['waktu']!),
+                  child: Text(row.timestampFormatted),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(row['kelembaban']!),
+                  child: Text('${row.humidity.toStringAsFixed(1)}%'),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(row['suhu']!),
+                  child: Text('${row.temperature.toStringAsFixed(1)}°C'),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(row['hasil']!),
+                  child: Text('${row.duration.toStringAsFixed(1)}'),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(row['keterangan']!),
+                  child: Text(row.keterangan),
                 ),
               ],
             )),
@@ -150,7 +129,7 @@ class LaporanPage extends StatelessWidget {
     );
   }
 
-  Future<void> _cetakPDF() async {
+  Future<void> _cetakPDF(List<SensorData> dataSimulasi) async {
     final pdf = pw.Document();
 
     final ByteData bytes = await rootBundle.load('assets/images/logo.png');
@@ -162,18 +141,14 @@ class LaporanPage extends StatelessWidget {
           pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Image(
-                pw.MemoryImage(logoBytes),
-                width: 60,
-                height: 60,
-              ),
+              pw.Image(pw.MemoryImage(logoBytes), width: 60, height: 60),
               pw.SizedBox(width: 16),
               pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text('STMIK Pelita Nusantara',
                       style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
-                  pw.Text('Jl. Iskandar Muda No.1, Merdeka, Kec. Medan Baru, Kota Medan, Sumatera Utara 20222'),
+                  pw.Text('Jl. Iskandar Muda No.1, Medan Baru, Kota Medan, Sumatera Utara'),
                   pw.Text('Telp: (061) 7952010'),
                 ],
               ),
@@ -187,11 +162,11 @@ class LaporanPage extends StatelessWidget {
           pw.Table.fromTextArray(
             headers: ['Waktu', 'Kelembaban', 'Suhu', 'Hasil', 'Keterangan'],
             data: dataSimulasi.map((row) => [
-              row['waktu'],
-              row['kelembaban'],
-              row['suhu'],
-              row['hasil'],
-              row['keterangan'],
+              row.timestampFormatted,
+              '${row.humidity.toStringAsFixed(1)}%',
+              '${row.temperature.toStringAsFixed(1)}°C',
+              '${row.duration.toStringAsFixed(1)}',
+              row.keterangan,
             ]).toList(),
           ),
         ],

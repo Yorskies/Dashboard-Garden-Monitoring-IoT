@@ -4,7 +4,7 @@ import 'pages/data_tanaman_page.dart';
 import 'pages/laporan_page.dart';
 import 'pages/simulasi_page.dart';
 import 'pages/logka_fuzzy_page.dart';
-import 'pages/testing_firebase.dart'; // ✅ Tambahkan ini
+import 'pages/testing_firebase.dart';
 import 'widgets/sidebar.dart';
 
 class BaseLayout extends StatefulWidget {
@@ -15,52 +15,44 @@ class BaseLayout extends StatefulWidget {
 }
 
 class _BaseLayoutState extends State<BaseLayout> {
-  String selectedMenu = 'Dashboard';
+  // Daftar menu
+  final List<String> menuTitles = [
+    'Dashboard',
+    'Data Tanaman',
+    'Simulasi',
+    'Logika Fuzzy',
+    'Laporan',
+    'Tes Firebase',
+  ];
+
+  int selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    Widget currentPage;
-
-    switch (selectedMenu) {
-      case 'Data Tanaman':
-        currentPage = const DataTanamanPage();
-        break;
-      case 'Simulasi':
-        currentPage = const SimulasiPage();
-        break;
-      case 'Logika Fuzzy':
-        currentPage = const LogikaFuzzyPage();
-        break;
-      case 'Laporan':
-        currentPage = const LaporanPage();
-        break;
-      case 'Tes Firebase': // ✅ Tambahan
-        currentPage = const TestingFirebasePage();
-        break;
-      default:
-        currentPage = const DashboardPage();
-    }
-
     return Scaffold(
       body: Row(
         children: [
           Sidebar(
-            selectedMenu: selectedMenu,
+            selectedMenu: menuTitles[selectedIndex],
             onMenuTap: (menu) {
               setState(() {
-                selectedMenu = menu;
+                selectedIndex = menuTitles.indexOf(menu);
               });
             },
           ),
           Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              transitionBuilder: (child, animation) =>
-                  FadeTransition(opacity: animation, child: child),
-              child: Container(
-                key: ValueKey<String>(selectedMenu),
-                padding: const EdgeInsets.all(24.0),
-                child: currentPage,
+            child: Container(
+              padding: const EdgeInsets.all(24.0),
+              child: IndexedStack(
+                index: selectedIndex,
+                children: const [
+                  DashboardPage(),
+                  DataTanamanPage(),
+                  SimulasiPage(),
+                  LogikaFuzzyPage(),
+                  LaporanPage(),
+                  TestingFirebasePage(),
+                ],
               ),
             ),
           ),

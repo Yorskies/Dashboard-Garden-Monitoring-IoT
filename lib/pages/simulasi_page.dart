@@ -1,112 +1,27 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+import '../models/sensor_data.dart';
 import '../providers/realtime_data_provider.dart';
+import '../providers/simulasi_provider.dart';
 import '../widgets/header.dart';
 import 'laporan_page.dart';
 
-class SimulasiPage extends StatefulWidget {
-  const SimulasiPage({Key? key}) : super(key: key);
-
-  @override
-  State<SimulasiPage> createState() => _SimulasiPageState();
-}
-
-class _SimulasiPageState extends State<SimulasiPage> {
-  final List<Map<String, String>> _simulasiData = [];
-  Timer? _timer;
-  DateTime? _lastResetDate;
-
-  @override
-  void initState() {
-    super.initState();
-    _lastResetDate = DateTime.now();
-    _startFuzzyTimer();
-  }
-
-  void _startFuzzyTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 10), (_) {
-      final provider = Provider.of<RealtimeDataProvider>(context, listen: false);
-      final kelembaban = provider.kelembaban;
-      final suhu = provider.suhu;
-
-      if (kelembaban != null && suhu != null) {
-        final hasil = _prosesFuzzy(kelembaban, suhu);
-        final now = DateFormat('HH:mm').format(DateTime.now());
-
-        setState(() {
-          if (_shouldReset()) {
-            _simulasiData.clear();
-            _lastResetDate = DateTime.now();
-          }
-          _simulasiData.add({
-            'waktu': now,
-            'kelembaban': '${kelembaban.toStringAsFixed(1)}%',
-            'suhu': '${suhu.toStringAsFixed(1)}°C',
-            'hasil': hasil['output']!,
-            'keterangan': hasil['keterangan']!,
-          });
-          if (_simulasiData.length > 100) {
-            _simulasiData.removeAt(0);
-          }
-        });
-      }
-    });
-  }
-
-  bool _shouldReset() {
-    final now = DateTime.now();
-    return _lastResetDate != null &&
-        (now.day != _lastResetDate!.day ||
-            now.month != _lastResetDate!.month ||
-            now.year != _lastResetDate!.year);
-  }
-
-  Map<String, String> _prosesFuzzy(double kelembaban, double suhu) {
-    double fuzzyMembership(double x, double a, double b, double c) {
-      if (x <= a || x >= c) return 0;
-      if (x == b) return 1;
-      if (x < b) return (x - a) / (b - a);
-      return (c - x) / (c - b);
-    }
-
-    double tanahKering = fuzzyMembership(kelembaban, 0, 30, 60);
-    double tanahNormal = fuzzyMembership(kelembaban, 55, 67.5, 80);
-    double tanahBasah = fuzzyMembership(kelembaban, 80, 90, 100);
-
-    double suhuPanas = fuzzyMembership(suhu, 25, 30, 35);
-    double suhuSedang = fuzzyMembership(suhu, 15, 22.5, 30);
-    double suhuDingin = fuzzyMembership(suhu, 0, 10, 20);
-
-    double w1 = tanahKering < suhuPanas ? tanahKering : suhuPanas;
-    double z1 = 10;
-    double w2 = tanahNormal < suhuSedang ? tanahNormal : suhuSedang;
-    double z2 = 3;
-    double w3 = tanahBasah < suhuDingin ? tanahBasah : suhuDingin;
-    double z3 = 0;
-
-    double numerator = (w1 * z1) + (w2 * z2) + (w3 * z3);
-    double denominator = (w1 + w2 + w3);
-    double output = (denominator == 0) ? 0 : (numerator / denominator);
-
-    return {
-      'output': output.toStringAsFixed(1),
-      'keterangan': output == 0 ? 'Tidak disiram' : 'Disiram ${output.toStringAsFixed(1)} detik',
-    };
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
+class SimulasiPage extends StatelessWidget {
+  const SimulasiPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<RealtimeDataProvider>(context);
+    final realtimeProvider = Provider.of<RealtimeDataProvider>(context);
+    final simulasiProvider = Provider.of<SimulasiProvider>(context);
+
+    // Update data simulasi berdasarkan data sensor terbaru
+    final latest = realtimeProvider.latestData;
+    if (latest != null && !simulasiProvider.containsTimestamp(latest.timestamp)) {
+      simulasiProvider.addData(latest);
+    }
 
     return Scaffold(
       body: Padding(
@@ -116,201 +31,190 @@ class _SimulasiPageState extends State<SimulasiPage> {
           children: [
             const Header(title: 'Simulasi'),
             const SizedBox(height: 16),
-            _buildChart(provider),
-            const SizedBox(height: 16),
-            _buildButtons(context),
-            const SizedBox(height: 16),
-            _buildTable(),
+            _buildChart(realtimeProvider),
+            const SizedBox(height: 20),
+            _buildButtons(context, simulasiProvider),
+            const SizedBox(height: 20),
+            Expanded(child: _buildScrollableTable(simulasiProvider)),
           ],
         ),
       ),
     );
   }
 
-Widget _buildChart(RealtimeDataProvider provider) {
-  final data = provider.history;
-  if (data.isEmpty) return const Text("Belum ada data.");
+  Widget _buildChart(RealtimeDataProvider provider) {
+    final data = provider.history;
+    if (data.isEmpty) return const Text("Belum ada data.");
 
-  return Card(
-    elevation: 4,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Grafik Suhu & Kelembaban',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 250,
-            child: LineChart(
-              LineChartData(
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: data.map((e) => FlSpot(
-                      e.timestamp.millisecondsSinceEpoch.toDouble(),
-                      e.temperature,
-                    )).toList(),
-                    isCurved: true,
-                    color: Colors.red,
-                    barWidth: 2,
-                    dotData: FlDotData(show: true),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: Colors.red.withOpacity(0.1),
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Grafik Suhu dan Kelembaban',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 260,
+              child: LineChart(
+                LineChartData(
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: data
+                          .map((e) => FlSpot(
+                              e.timestamp.millisecondsSinceEpoch.toDouble(),
+                              e.temperature))
+                          .toList(),
+                      isCurved: true,
+                      color: Colors.orange,
+                      barWidth: 2,
+                      belowBarData: BarAreaData(
+                          show: true, color: Colors.orange.withOpacity(0.2)),
+                      dotData: FlDotData(show: false),
+                    ),
+                    LineChartBarData(
+                      spots: data
+                          .map((e) => FlSpot(
+                              e.timestamp.millisecondsSinceEpoch.toDouble(),
+                              e.humidity))
+                          .toList(),
+                      isCurved: true,
+                      color: Colors.lightBlue,
+                      barWidth: 2,
+                      belowBarData: BarAreaData(
+                          show: true, color: Colors.lightBlue.withOpacity(0.2)),
+                      dotData: FlDotData(show: false),
+                    ),
+                  ],
+                  titlesData: FlTitlesData(
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 40,
+                        getTitlesWidget: (value, _) =>
+                            Text('${value.toInt()}'),
+                      ),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        interval: data.length > 6
+                            ? (data.last.timestamp
+                                        .difference(data.first.timestamp)
+                                        .inMilliseconds ~/
+                                    6)
+                                .toDouble()
+                            : 10000,
+                        getTitlesWidget: (value, _) {
+                          final date = DateTime.fromMillisecondsSinceEpoch(
+                              value.toInt());
+                          return Text(DateFormat.Hm().format(date),
+                              style: const TextStyle(fontSize: 10));
+                        },
+                      ),
                     ),
                   ),
-                  LineChartBarData(
-                    spots: data.map((e) => FlSpot(
-                      e.timestamp.millisecondsSinceEpoch.toDouble(),
-                      e.humidity,
-                    )).toList(),
-                    isCurved: true,
-                    color: Colors.blue,
-                    barWidth: 2,
-                    dotData: FlDotData(show: true),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: Colors.blue.withOpacity(0.1),
+                  gridData: FlGridData(show: true),
+                  borderData: FlBorderData(
+                    show: true,
+                    border: const Border(
+                      bottom: BorderSide(),
+                      left: BorderSide(),
                     ),
-                  ),
-                ],
-                titlesData: FlTitlesData(
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      interval: 5,
-                      reservedSize: 40,
-                      getTitlesWidget: (value, _) => Text('${value.toInt()}'),
-                    ),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      interval: data.length >= 6
-                          ? (data.last.timestamp
-                                  .difference(data.first.timestamp)
-                                  .inMilliseconds ~/ 5)
-                                  .toDouble()
-                          : 10000,
-                      getTitlesWidget: (value, _) {
-                        final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
-                        final formatted = DateFormat.Hm().format(date);
-                        return Text(formatted, style: const TextStyle(fontSize: 10));
-                      },
-                    ),
-                  ),
-                ),
-                gridData: FlGridData(show: true),
-                borderData: FlBorderData(
-                  show: true,
-                  border: const Border(
-                    left: BorderSide(),
-                    bottom: BorderSide(),
-                  ),
-                ),
-                lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    tooltipBgColor: Colors.grey.shade800,
-                    getTooltipItems: (spots) {
-                      return spots.map((spot) {
-                        final date = DateFormat.Hm().format(
-                            DateTime.fromMillisecondsSinceEpoch(spot.x.toInt()));
-                        return LineTooltipItem(
-                          '${spot.bar.color == Colors.red ? 'Suhu' : 'Kelembaban'}\n'
-                          '$date\n${spot.y.toStringAsFixed(1)}',
-                          const TextStyle(color: Colors.white),
-                        );
-                      }).toList();
-                    },
                   ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: const [
-              Icon(Icons.thermostat, color: Colors.red, size: 14),
-              SizedBox(width: 4),
-              Text("Suhu"),
-              SizedBox(width: 12),
-              Icon(Icons.water_drop, color: Colors.blue, size: 14),
-              SizedBox(width: 4),
-              Text("Kelembaban"),
-            ],
-          ),
-        ],
+            const SizedBox(height: 10),
+            Row(
+              children: const [
+                Icon(Icons.thermostat, size: 16, color: Colors.orange),
+                SizedBox(width: 6),
+                Text("Suhu"),
+                SizedBox(width: 16),
+                Icon(Icons.water_drop, size: 16, color: Colors.lightBlue),
+                SizedBox(width: 6),
+                Text("Kelembaban"),
+              ],
+            )
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-
-  Widget _buildButtons(BuildContext context) {
+  Widget _buildButtons(BuildContext context, SimulasiProvider provider) {
     return Row(
       children: [
         ElevatedButton.icon(
-          onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const LaporanPage()));
-          },
+          onPressed: () => Navigator.push(
+              context, MaterialPageRoute(builder: (_) => const LaporanPage())),
           icon: const Icon(Icons.print),
-          label: const Text('Cetak'),
+          label: const Text("Cetak PDF"),
         ),
         const SizedBox(width: 12),
         ElevatedButton.icon(
-          onPressed: () {
-            setState(() => _simulasiData.clear());
-          },
+          onPressed: () => provider.resetData(),
           icon: const Icon(Icons.refresh),
-          label: const Text('Reset'),
+          label: const Text("Reset"),
         ),
       ],
     );
   }
 
-  Widget _buildTable() {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Hasil Simulasi Fuzzy',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: SingleChildScrollView(
-              child: DataTable(
-                columnSpacing: 12,
-                columns: const [
-                  DataColumn(label: Text('Waktu')),
-                  DataColumn(label: Text('Kelembaban')),
-                  DataColumn(label: Text('Suhu')),
-                  DataColumn(label: Text('Hasil')),
-                  DataColumn(label: Text('Keterangan')),
+  Widget _buildScrollableTable(SimulasiProvider provider) {
+    final data = provider.data.reversed.toList();
+    if (data.isEmpty) {
+      return const Center(child: Text('Tidak ada data simulasi.'));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Hasil Simulasi Fuzzy",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Scrollbar(
+              thumbVisibility: true,
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                children: [
+                  DataTable(
+                    columnSpacing: 16,
+                    headingRowColor: MaterialStateColor.resolveWith(
+                        (_) => Colors.grey.shade200),
+                    columns: const [
+                      DataColumn(label: Text('Waktu')),
+                      DataColumn(label: Text('Kelembaban')),
+                      DataColumn(label: Text('Suhu')),
+                      DataColumn(label: Text('Hasil')),
+                      DataColumn(label: Text('Keterangan')),
+                    ],
+                    rows: data.take(10).map((e) {
+                      return DataRow(cells: [
+                        DataCell(Text(e.timestampFormatted)),
+                        DataCell(Text('${e.humidity.toStringAsFixed(1)}%')),
+                        DataCell(Text('${e.temperature.toStringAsFixed(1)}°C')),
+                        DataCell(Text(e.duration.toStringAsFixed(1))),
+                        DataCell(Text(e.keterangan)),
+                      ]);
+                    }).toList(),
+                  ),
                 ],
-                rows: _simulasiData
-                    .reversed
-                    .take(10)
-                    .map(
-                      (data) => DataRow(cells: [
-                        DataCell(Text(data['waktu']!)),
-                        DataCell(Text(data['kelembaban']!)),
-                        DataCell(Text(data['suhu']!)),
-                        DataCell(Text(data['hasil']!)),
-                        DataCell(Text(data['keterangan']!)),
-                      ]),
-                    )
-                    .toList(),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:monitoring_tanaman/pages/login_page.dart';
+import 'package:monitoring_tanaman/providers/simulasi_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
@@ -42,17 +44,18 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => RealtimeDataProvider()),
         ChangeNotifierProvider(create: (_) => DeviceStatusProvider()),
-        ChangeNotifierProvider(create: (_) => TanamanProvider()), // <--- penting
+        ChangeNotifierProvider(create: (_) => TanamanProvider()),
+        ChangeNotifierProvider(create: (_) => SimulasiProvider()), // <--- penting
       ],
       child: MaterialApp(
-        title: 'Smart Irrigation Dashboard',
+        title: 'Smart Watering',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primarySwatch: Colors.green,
           scaffoldBackgroundColor: Colors.white,
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-        home: const BaseLayout(),
+        home: const LoginPage(),
       ),
     );
   }

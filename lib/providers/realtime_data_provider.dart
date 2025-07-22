@@ -17,6 +17,7 @@ class RealtimeDataProvider extends ChangeNotifier {
   Timer? _timer;
   DateTime _lastResetDate = DateTime.now();
 
+  // Getter publik
   double get suhu => _suhu;
   double get kelembaban => _kelembaban;
   double get durasi => _durasi;
@@ -24,6 +25,10 @@ class RealtimeDataProvider extends ChangeNotifier {
   int get relay => _relay;
   String get keterangan => _keterangan;
   List<SensorData> get history => _sensorHistory;
+
+  // 🔧 Tambahan getter untuk latestData agar tidak error di simulasi_page
+  SensorData? get latestData =>
+      _sensorHistory.isNotEmpty ? _sensorHistory.last : null;
 
   RealtimeDataProvider() {
     _startListening();
@@ -45,19 +50,23 @@ class RealtimeDataProvider extends ChangeNotifier {
   }
 
   void _startFuzzyCalculation() {
-    _timer = Timer.periodic(Duration(seconds: 10), (_) {
+    _timer = Timer.periodic(const Duration(seconds: 10), (_) {
       _checkDailyReset();
       _hitungFuzzy();
-      _sensorHistory.add(SensorData(
+
+      final dataBaru = SensorData(
         timestamp: DateTime.now(),
         temperature: _suhu,
         humidity: _kelembaban,
         duration: _durasi,
         keterangan: _keterangan,
-      ));
+      );
+
+      _sensorHistory.add(dataBaru);
       if (_sensorHistory.length > 100) {
         _sensorHistory.removeAt(0);
       }
+
       notifyListeners();
     });
   }
@@ -78,13 +87,20 @@ class RealtimeDataProvider extends ChangeNotifier {
   }
 
   void _hitungFuzzy() {
-    double tanahKering = _fuzzyMembership(_kelembaban, 0, 30, 60);
-    double tanahNormal = _fuzzyMembership(_kelembaban, 55, 67.5, 80);
-    double tanahBasah = _fuzzyMembership(_kelembaban, 80, 90, 100);
+    double fuzzyMembership(double x, double a, double b, double c) {
+      if (x <= a || x >= c) return 0;
+      if (x == b) return 1;
+      if (x < b) return (x - a) / (b - a);
+      return (c - x) / (c - b);
+    }
 
-    double suhuPanas = _fuzzyMembership(_suhu, 25, 30, 35);
-    double suhuSedang = _fuzzyMembership(_suhu, 15, 22.5, 30);
-    double suhuDingin = _fuzzyMembership(_suhu, 0, 10, 20);
+    double tanahKering = fuzzyMembership(_kelembaban, 0, 30, 60);
+    double tanahNormal = fuzzyMembership(_kelembaban, 55, 67.5, 80);
+    double tanahBasah = fuzzyMembership(_kelembaban, 80, 90, 100);
+
+    double suhuPanas = fuzzyMembership(_suhu, 25, 30, 35);
+    double suhuSedang = fuzzyMembership(_suhu, 15, 22.5, 30);
+    double suhuDingin = fuzzyMembership(_suhu, 0, 10, 20);
 
     double w1 = tanahKering < suhuPanas ? tanahKering : suhuPanas;
     double z1 = 10;
@@ -99,15 +115,8 @@ class RealtimeDataProvider extends ChangeNotifier {
 
     _durasi = output;
     _keterangan = output == 0
-        ? 'Tidak perlu disiram'
-        : 'Disiram selama ${output.toStringAsFixed(1)} detik';
-  }
-
-  double _fuzzyMembership(double x, double a, double b, double c) {
-    if (x <= a || x >= c) return 0;
-    if (x == b) return 1;
-    if (x < b) return (x - a) / (b - a);
-    return (c - x) / (c - b);
+        ? 'Tidak disiram'
+        : 'Disiram ${output.toStringAsFixed(1)} detik';
   }
 
   @override

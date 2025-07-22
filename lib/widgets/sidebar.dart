@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../pages/login_page.dart';
 
 class Sidebar extends StatelessWidget {
   final Function(String) onMenuTap;
@@ -18,7 +19,7 @@ class Sidebar extends StatelessWidget {
       {'title': 'Simulasi', 'icon': Icons.animation},
       {'title': 'Logika Fuzzy', 'icon': Icons.bubble_chart},
       {'title': 'Laporan', 'icon': Icons.picture_as_pdf},
-      {'title': 'Tes Firebase', 'icon': Icons.cloud_upload}, // Tambahan
+      {'title': 'Tes Firebase', 'icon': Icons.cloud_upload},
     ];
 
     return Container(
@@ -47,7 +48,7 @@ class Sidebar extends StatelessWidget {
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Smart Farming',
+                    'Smart Watering',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -62,6 +63,47 @@ class Sidebar extends StatelessWidget {
           const SizedBox(height: 8),
           ...menuItems.map((item) => _buildMenuItem(item['title'], item['icon'])).toList(),
           const Spacer(),
+
+          // Tombol Logout dengan Konfirmasi
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: ElevatedButton.icon(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text("Konfirmasi Logout"),
+                    content: const Text("Apakah Anda yakin ingin keluar dari aplikasi?"),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text("Batal"),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        onPressed: () {
+                          Navigator.of(ctx).pop(); // tutup dialog
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LoginPage()),
+                          );
+                        },
+                        child: const Text("Logout"),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              icon: const Icon(Icons.logout, color: Colors.white),
+              label: const Text("Logout", style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade700,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                minimumSize: const Size(double.infinity, 45),
+              ),
+            ),
+          ),
+
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Text(
