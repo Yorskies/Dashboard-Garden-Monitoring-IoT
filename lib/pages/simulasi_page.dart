@@ -10,33 +10,36 @@ import '../widgets/header.dart';
 import 'laporan_page.dart';
 
 class SimulasiPage extends StatelessWidget {
-  const SimulasiPage({super.key});
+  final Function(String)? onMenuSelected;
+  const SimulasiPage({super.key, this.onMenuSelected});
 
   @override
   Widget build(BuildContext context) {
     final realtimeProvider = Provider.of<RealtimeDataProvider>(context);
     final simulasiProvider = Provider.of<SimulasiProvider>(context);
 
-    // Update data simulasi berdasarkan data sensor terbaru
     final latest = realtimeProvider.latestData;
-    if (latest != null && !simulasiProvider.containsTimestamp(latest.timestamp)) {
+    if (latest != null &&
+        !simulasiProvider.containsTimestamp(latest.timestamp)) {
       simulasiProvider.addData(latest);
     }
 
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Header(title: 'Simulasi'),
-            const SizedBox(height: 16),
-            _buildChart(realtimeProvider),
-            const SizedBox(height: 20),
-            _buildButtons(context, simulasiProvider),
-            const SizedBox(height: 20),
-            Expanded(child: _buildScrollableTable(simulasiProvider)),
-          ],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Header(title: 'Simulasi', onMenuSelected: onMenuSelected),
+              const SizedBox(height: 16),
+              _buildChart(realtimeProvider),
+              const SizedBox(height: 20),
+              _buildButtons(context, simulasiProvider),
+              const SizedBox(height: 20),
+              _buildScrollableTable(simulasiProvider),
+            ],
+          ),
         ),
       ),
     );
@@ -177,7 +180,8 @@ class SimulasiPage extends StatelessWidget {
         const Text("Hasil Simulasi Fuzzy",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        Expanded(
+        SizedBox(
+          height: 400, // Atur tinggi maksimal tabel
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey.shade300),
@@ -186,7 +190,8 @@ class SimulasiPage extends StatelessWidget {
             child: Scrollbar(
               thumbVisibility: true,
               child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                 children: [
                   DataTable(
                     columnSpacing: 16,

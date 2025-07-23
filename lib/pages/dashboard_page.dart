@@ -10,7 +10,9 @@ import '../widgets/confirmation_dialog.dart';
 
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({Key? key}) : super(key: key);
+  final Function(String)? onMenuSelected;
+
+  const DashboardPage({Key? key, this.onMenuSelected}) : super(key: key);
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -52,14 +54,14 @@ Future<void> _togglePompa(BuildContext context, bool isOn) async {
         powerStatus = true;
       });
       _startPompaTimer();
-      FirebaseDatabase.instance.ref('data_sensor/relay').set(1);
+      FirebaseDatabase.instance.ref('data_sensor/relay').set(0);
     }
   } else {
     setState(() {
       powerStatus = false;
     });
     _stopPompaTimer();
-    FirebaseDatabase.instance.ref('data_sensor/relay').set(0);
+    FirebaseDatabase.instance.ref('data_sensor/relay').set(1);
   }
 }
 
@@ -108,7 +110,9 @@ Future<void> _togglePompa(BuildContext context, bool isOn) async {
 
     return Column(
       children: [
-        const Header(title: 'Dashboard'),
+        Header(title: 'Dashboard',
+        onMenuSelected: widget.onMenuSelected,
+        ), // penting
         const SizedBox(height: 16),
         Expanded(
           child: SingleChildScrollView(

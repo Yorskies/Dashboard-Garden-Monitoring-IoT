@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/data_tanaman_page.dart';
 import 'pages/laporan_page.dart';
+import 'pages/pengaturan_page.dart';
 import 'pages/simulasi_page.dart';
 import 'pages/logka_fuzzy_page.dart';
-import 'pages/testing_firebase.dart';
 import 'widgets/sidebar.dart';
 
 class BaseLayout extends StatefulWidget {
@@ -22,10 +22,19 @@ class _BaseLayoutState extends State<BaseLayout> {
     'Simulasi',
     'Logika Fuzzy',
     'Laporan',
-    'Tes Firebase',
+    'Pengaturan',
   ];
 
   int selectedIndex = 0;
+
+  // Callback dari Header di halaman
+  void _handleHeaderMenu(String menu) {
+    if (menuTitles.contains(menu)) {
+      setState(() {
+        selectedIndex = menuTitles.indexOf(menu);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,13 +54,13 @@ class _BaseLayoutState extends State<BaseLayout> {
               padding: const EdgeInsets.all(24.0),
               child: IndexedStack(
                 index: selectedIndex,
-                children: const [
-                  DashboardPage(),
-                  DataTanamanPage(),
-                  SimulasiPage(),
-                  LogikaFuzzyPage(),
-                  LaporanPage(),
-                  TestingFirebasePage(),
+                children: [
+                  DashboardPage(onMenuSelected: _handleHeaderMenu),
+                  DataTanamanPage(onMenuSelected: _handleHeaderMenu),
+                  SimulasiPage(onMenuSelected: _handleHeaderMenu),
+                  LogikaFuzzyPage(onMenuSelected: _handleHeaderMenu),
+                  LaporanPage(onMenuSelected: _handleHeaderMenu),
+                  PengaturanPage(onMenuSelected: _handleHeaderMenu),
                 ],
               ),
             ),

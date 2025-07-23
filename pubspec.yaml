@@ -47,6 +47,7 @@ dependencies:
   intl: ^0.20.2
   fl_chart: ^1.0.0
   shared_preferences: ^2.2.2
+  crypto: ^3.0.3
 
 dev_dependencies:
   flutter_test:
@@ -74,6 +75,7 @@ flutter:
   assets:
     - assets/images/logo.png
     - assets/fuzzy_membership_chart.png
+    - assets/images/logo2.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

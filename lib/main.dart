@@ -3,10 +3,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:monitoring_tanaman/pages/login_page.dart';
 import 'package:monitoring_tanaman/providers/simulasi_provider.dart';
+import 'package:monitoring_tanaman/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
-import 'base_layout.dart';
 import 'providers/realtime_data_provider.dart';
 import 'providers/device_status_provider.dart';
 import 'providers/tanaman_provider.dart';
@@ -45,7 +45,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => RealtimeDataProvider()),
         ChangeNotifierProvider(create: (_) => DeviceStatusProvider()),
         ChangeNotifierProvider(create: (_) => TanamanProvider()),
-        ChangeNotifierProvider(create: (_) => SimulasiProvider()), // <--- penting
+        ChangeNotifierProvider(create: (_) => SimulasiProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()), // <--- penting
       ],
       child: MaterialApp(
         title: 'Smart Watering',

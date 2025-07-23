@@ -6,7 +6,9 @@ import '../widgets/form_tambah_tanaman.dart';
 import '../widgets/tanaman_detail_card.dart';
 
 class DataTanamanPage extends StatelessWidget {
-  const DataTanamanPage({Key? key}) : super(key: key);
+  final Function(String)? onMenuSelected;
+
+  const DataTanamanPage({Key? key, this.onMenuSelected}) : super(key: key);
 
   void _tampilkanFormTambah(BuildContext context, {Map<String, String>? dataEdit, int? indexEdit}) {
     showDialog(
@@ -53,7 +55,7 @@ class DataTanamanPage extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Header(title: 'Data Tanaman'),
+          Header(title: 'Data Tanaman', onMenuSelected: onMenuSelected),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),

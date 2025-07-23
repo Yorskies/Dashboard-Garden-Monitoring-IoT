@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import '../widgets/header.dart';
 
 class LogikaFuzzyPage extends StatefulWidget {
-  const LogikaFuzzyPage({Key? key}) : super(key: key);
+
+  final Function(String)? onMenuSelected;
+
+  const LogikaFuzzyPage({Key? key, this.onMenuSelected}) : super(key: key);
 
   @override
   State<LogikaFuzzyPage> createState() => _LogikaFuzzyPageState();
@@ -70,7 +73,7 @@ class _LogikaFuzzyPageState extends State<LogikaFuzzyPage> {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            const Header(title: 'Logika Fuzzy'),
+            Header(title: 'Logika Fuzzy', onMenuSelected: widget.onMenuSelected,),
             const SizedBox(height: 24),
             Card(
               elevation: 6,

@@ -10,7 +10,9 @@ import '../models/sensor_data.dart';
 import '../providers/simulasi_provider.dart';
 
 class LaporanPage extends StatelessWidget {
-  const LaporanPage({Key? key}) : super(key: key);
+  final Function(String)? onMenuSelected;
+
+  const LaporanPage({Key? key, this.onMenuSelected}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,7 @@ class LaporanPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Header(title: 'Laporan'),
+              Header(title: 'Laporan', onMenuSelected: onMenuSelected),
               Row(
                 children: [
                   Image.asset(

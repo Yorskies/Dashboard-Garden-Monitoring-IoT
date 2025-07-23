@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../base_layout.dart'; // pastikan path ini benar
+import 'package:provider/provider.dart';
+import '../base_layout.dart';
+import '../providers/user_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -12,6 +14,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   void _togglePasswordVisibility() {
     setState(() {
@@ -19,13 +22,35 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  void _login() {
+  Future<void> _login() async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
-    if (username == "admin" && password == "admin123") {
+    if (username.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Login berhasil")),
+        const SnackBar(content: Text("❗ Harap isi semua kolom")),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final success = await userProvider.login(username, password);
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (success) {
+      // Simpan ke provider agar bisa diakses di halaman lain
+      userProvider.setUsername(username);
+      userProvider.setPassword(password);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("✅ Login berhasil")),
       );
 
       Navigator.pushReplacement(
@@ -34,7 +59,7 @@ class _LoginPageState extends State<LoginPage> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Nama pengguna atau kata sandi salah")),
+        const SnackBar(content: Text("❌ Nama pengguna atau kata sandi salah")),
       );
     }
   }
@@ -58,7 +83,7 @@ class _LoginPageState extends State<LoginPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Image.asset(
-                      'assets/images/logo.png',
+                      'assets/images/logo2.png',
                       width: 100,
                       height: 100,
                     ),
@@ -101,14 +126,16 @@ class _LoginPageState extends State<LoginPage> {
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton(
-                        onPressed: _login,
+                        onPressed: _isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text('Login', style: TextStyle(fontSize: 16)),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text('Login', style: TextStyle(fontSize: 16)),
                       ),
                     ),
                   ],

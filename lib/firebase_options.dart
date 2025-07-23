@@ -21,13 +21,25 @@ class DefaultFirebaseOptions {
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return android;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for android - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.iOS:
-        return ios;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for ios - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.macOS:
-        return macos;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.windows:
-        return windows;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for windows - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -41,54 +53,12 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDlRFruTH0BX5_vxdBfAeG9KKxRpBYEew4',
-    appId: '1:502204034824:web:6bc83db6096b4f7b2846bd',
-    messagingSenderId: '502204034824',
-    projectId: 'gardenmonitoring-33ce9',
-    authDomain: 'gardenmonitoring-33ce9.firebaseapp.com',
-    databaseURL: 'https://gardenmonitoring-33ce9-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'gardenmonitoring-33ce9.firebasestorage.app',
-    measurementId: 'G-4BFWCTBQ1V',
+    apiKey: 'AIzaSyBsSjSXcTwcjUVQUXnJN8Dqz5IwHUZ3leg',
+    appId: '1:195359322394:web:43fbd3e1ee08b9e63bfca3',
+    messagingSenderId: '195359322394',
+    projectId: 'smartwatering-732b4',
+    authDomain: 'smartwatering-732b4.firebaseapp.com',
+    databaseURL: 'https://smartwatering-732b4-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'smartwatering-732b4.firebasestorage.app',
   );
-
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBHXgdxU3KxTf1CfvIDPtd-NLlZjj1npw4',
-    appId: '1:502204034824:android:6527373e689aaee02846bd',
-    messagingSenderId: '502204034824',
-    projectId: 'gardenmonitoring-33ce9',
-    databaseURL: 'https://gardenmonitoring-33ce9-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'gardenmonitoring-33ce9.firebasestorage.app',
-  );
-
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyACq8sp65P2xSYYsF_ZqiepKi2OGIG8upc',
-    appId: '1:502204034824:ios:c73172559f9a7d402846bd',
-    messagingSenderId: '502204034824',
-    projectId: 'gardenmonitoring-33ce9',
-    databaseURL: 'https://gardenmonitoring-33ce9-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'gardenmonitoring-33ce9.firebasestorage.app',
-    iosBundleId: 'com.example.monitoringTanaman',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyACq8sp65P2xSYYsF_ZqiepKi2OGIG8upc',
-    appId: '1:502204034824:ios:c73172559f9a7d402846bd',
-    messagingSenderId: '502204034824',
-    projectId: 'gardenmonitoring-33ce9',
-    databaseURL: 'https://gardenmonitoring-33ce9-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'gardenmonitoring-33ce9.firebasestorage.app',
-    iosBundleId: 'com.example.monitoringTanaman',
-  );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDlRFruTH0BX5_vxdBfAeG9KKxRpBYEew4',
-    appId: '1:502204034824:web:6bc83db6096b4f7b2846bd',
-    messagingSenderId: '502204034824',
-    projectId: 'gardenmonitoring-33ce9',
-    authDomain: 'gardenmonitoring-33ce9.firebaseapp.com',
-    databaseURL: 'https://gardenmonitoring-33ce9-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'gardenmonitoring-33ce9.firebasestorage.app',
-    measurementId: 'G-4BFWCTBQ1V',
-  );
-
 }
